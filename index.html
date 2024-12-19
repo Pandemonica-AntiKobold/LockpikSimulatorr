@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Замок с отмычкой</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .lock-container {
+      text-align: center;
+    }
+
+    .lock {
+      position: relative;
+      width: 300px; 
+      height: 450px; 
+      background: #333;
+      border-radius: 15px;
+      margin: 0 auto 20px auto;
+    }
+
+    .lock-hole {
+      position: absolute;
+      top: 160px; 
+      left: 120px;
+      width: 60px; 
+      height: 80px; 
+      background: #fff;
+      border-radius: 10px;
+    }
+
+    .lock-inner {
+      position: absolute;
+      top: 170px; 
+      left: 135px;
+      width: 30px; 
+      height: 70px; 
+      background: #999;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .pins {
+      display: flex;
+      flex-direction: column;
+      gap: 10px; 
+      height: 100%;
+      justify-content: space-evenly;
+    }
+
+    .pin {
+      width: 100%;
+      height: 25px; 
+      background: #444;
+      border-radius: 5px;
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .pin.true {
+      transform: translateX(-10px); 
+      background: #444;
+    }
+
+    .pin.false {
+      transform: translateX(10px); 
+      background: #444;
+    }
+
+    .lockpick {
+      position: absolute;
+      bottom: 0;
+      left: 40%;
+      width: 160px; 
+      height: 10px; 
+      background: #c5c5c5;
+      border-radius: 2px;
+      transform: rotate(0deg);
+      transform-origin: left center;
+      transition: transform 0.5s ease;
+    }
+
+    .lockpick.correct {
+      transform: rotate(10deg);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 14px 30px; 
+      font-size: 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+
+    #lock-status {
+      margin-top: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="lock-container">
+    <div class="lock">
+      <div class="lock-hole"></div>
+      <div class="lock-inner">
+        <div class="pins">
+          <div class="pin" data-index="0"></div>
+          <div class="pin" data-index="1"></div>
+          <div class="pin" data-index="2"></div>
+        </div>
+      </div>
+      <div class="lockpick" id="lockpick"></div>
+    </div>
+    <button id="checkButton">Проверить</button>
+    <p id="lock-status">Отмычек осталось: <span id="lockpicks">5</span></p>
+    <p id="message"></p>
+  </div>
+  <script>
+    // Параметры замка
+    const correctCombination = [true, false, true]; // Правильная комбинация пазов
+    let currentCombination = [false, false, false]; // Текущая комбинация
+    let lockpicks = 5; // Количество отмычек
+
+    const lockpick = document.getElementById('lockpick');
+    const pins = document.querySelectorAll('.pin');
+    const checkButton = document.getElementById('checkButton');
+    const lockStatus = document.getElementById('lock-status');
+    const lockpicksElement = document.getElementById('lockpicks');
+    const message = document.getElementById('message');
+
+    // Обновление состояния пинов
+    pins.forEach((pin, index) => {
+      pin.addEventListener('click', () => {
+        currentCombination[index] = !currentCombination[index];
+        updatePinState(pin, currentCombination[index]);
+      });
+    });
+
+    // Обновление класса пина
+    function updatePinState(pin, isCorrect) {
+      pin.classList.toggle('true', isCorrect);
+      pin.classList.toggle('false', !isCorrect);
+    }
+
+    // Проверка замка
+    checkButton.addEventListener('click', () => {
+      if (lockpicks <= 0) {
+        message.textContent = 'Отмычки закончились! Вы проиграли.';
+        message.style.color = 'red';
+        return;
+      }
+
+      if (arraysEqual(correctCombination, currentCombination)) {
+        lockpick.classList.add('correct');
+        message.textContent = 'Замок успешно вскрыт';
+        message.style.color = 'green';
+        checkButton.disabled = true;
+
+        pins.forEach(pin => pin.classList.add('correct'));
+      } else {
+        // Шанс поломки отмычки
+        const pickBreaks = Math.random() < 0.5;
+        if (pickBreaks) {
+          lockpicks--;
+          lockpicksElement.textContent = lockpicks;
+          message.textContent = 'Неправильная комбинация - отмычка сломалась!';
+          message.style.color = 'red';
+        } else {
+          message.textContent = 'Неправильная комбинация, но отмычка уцелела.';
+          message.style.color = 'orange';
+        }
+
+        if (lockpicks <= 0) {
+          message.textContent = 'Отмычки закончились!';
+          message.style.color = 'red';
+          checkButton.disabled = true;
+        }
+      }
+    });
+
+    // Функция проверки массивов
+    function arraysEqual(arr1, arr2) {
+      return JSON.stringify(arr1) === JSON.stringify(arr2);
+    }
+  </script>
+</body>
+</html>
