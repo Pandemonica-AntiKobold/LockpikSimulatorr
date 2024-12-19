@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Замок с отмычкой</title>
   <style>
+    /* Основные стили страницы, выравнивание по центру, шрифт и фон */
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f9;
@@ -13,74 +14,83 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      flex-direction: column;
     }
 
+    /* Контейнер для замка с выравниванием текста по центру */
     .lock-container {
       text-align: center;
     }
 
+    /* Стили для замка, создаем прямоугольник с радиусом */
     .lock {
       position: relative;
-      width: 300px; 
-      height: 450px; 
+      width: 300px;
+      height: 450px;
       background: #333;
       border-radius: 15px;
       margin: 0 auto 20px auto;
     }
 
+    /* Дырка в замке */
     .lock-hole {
       position: absolute;
-      top: 160px; 
+      top: 160px;
       left: 120px;
-      width: 60px; 
-      height: 80px; 
+      width: 60px;
+      height: 80px;
       background: #fff;
       border-radius: 10px;
     }
 
+    /* Внутренняя часть замка */
     .lock-inner {
       position: absolute;
-      top: 170px; 
+      top: 170px;
       left: 135px;
-      width: 30px; 
-      height: 70px; 
+      width: 30px;
+      height: 70px;
       background: #999;
       border-radius: 3px;
       overflow: hidden;
     }
 
+    /* Контейнер для пинов, отображение в столбик */
     .pins {
       display: flex;
       flex-direction: column;
-      gap: 10px; 
-      height: 100%;
+      gap: 5px;
       justify-content: space-evenly;
+      height: 80%;
     }
 
+    /* Стили для пинов */
     .pin {
-      width: 100%;
-      height: 25px; 
+      height: 100%;
       background: #444;
       border-radius: 5px;
       transition: transform 0.3s ease, background 0.3s ease;
     }
 
+    /* Стиль пина, если он правильный (истинный) */
     .pin.true {
       transform: translateX(-10px); 
       background: #444;
     }
 
+    /* Стиль пина, если он неправильный (ложный) */
     .pin.false {
       transform: translateX(10px); 
       background: #444;
     }
 
+    /* Отмычка, расположенная снизу */
     .lockpick {
       position: absolute;
       bottom: 0;
       left: 40%;
-      width: 160px; 
-      height: 10px; 
+      width: 160px;
+      height: 10px;
       background: #c5c5c5;
       border-radius: 2px;
       transform: rotate(0deg);
@@ -88,10 +98,12 @@
       transition: transform 0.5s ease;
     }
 
+    /* Стиль отмычки, если она правильная */
     .lockpick.correct {
       transform: rotate(10deg);
     }
 
+    /* Стиль кнопки */
     button {
       margin-top: 20px;
       padding: 14px 30px; 
@@ -103,88 +115,214 @@
       cursor: pointer;
     }
 
+    /* Стиль кнопки при наведении */
     button:hover {
       background-color: #0056b3;
     }
 
+    /* Сообщение о статусе */
     #message {
       margin-top: 20px;
       font-size: 20px;
     }
 
+    /* Статус отмычек */
     #lock-status {
       margin-top: 10px;
       font-size: 20px;
     }
+
+    /* Стиль выбора сложности */
+    .difficulty-selection {
+      text-align: center;
+    }
+
+    /* Стиль кнопок сложности */
+    .difficulty-selection button {
+      margin: 20px;
+      background-color: #007bff;
+      color: white;
+    }
+
+    /* Стиль выбранной кнопки сложности */
+    .difficulty-selection button.selected {
+      background-color: #e7e7e7;
+      color: #333;
+    }
+
+    /* Стиль поля для ввода количества отмычек */
+    .difficulty-selection input {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    /* Контейнер для игры (изначально скрыт) */
+    .game-container {
+      display: none;
+      text-align: center;
+    }
+
+    /* Кнопка для возврата на экран выбора сложности */
+    .back-button {
+      background-color: #6c757d;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="lock-container">
+  <!-- Выбор сложности -->
+  <div id="difficultySelection" class="difficulty-selection">
+    <h1>Выберите сложность</h1>
+    <button id="easyButton" onclick="showGameOptions('easy')">Простой</button>
+    <button id="mediumButton" onclick="showGameOptions('medium')">Средний</button>
+    <button id="hardButton" onclick="showGameOptions('hard')">Тяжёлый</button>
+    <br>
+    <!-- Ввод количества отмычек -->
+    <label for="lockpicks-input">Введите количество отмычек: </label>
+    <input type="number" id="lockpicks-input" placeholder="Количество отмычек" min="1">
+    <button id="startGameButton" onclick="startGame()" disabled>Начать</button>
+  </div>
+
+  <!-- Игровой контейнер (скрыт, пока не начнется игра) -->
+  <div id="gameContainer" class="game-container">
     <div class="lock">
       <div class="lock-hole"></div>
       <div class="lock-inner">
-        <div class="pins">
-          <div class="pin" data-index="0"></div>
-          <div class="pin" data-index="1"></div>
-          <div class="pin" data-index="2"></div>
-          <div class="pin" data-index="3"></div>
-          <div class="pin" data-index="4"></div>
+        <div class="pins" id="pins-container">
+          <!-- Динамическое добавление пинов -->
         </div>
       </div>
       <div class="lockpick" id="lockpick"></div>
     </div>
+
     <button id="checkButton">Проверить</button>
-    <p id="lock-status">Отмычек осталось: <span id="lockpicks">5</span></p>
     <p id="message"></p>
+    <p id="lock-status">Отмычек осталось: <span id="lockpicks-count"></span></p>
+    <button class="back-button" onclick="goBack()">Назад</button>
   </div>
+
   <script>
-    // Параметры замка
-    const correctCombination = [true, false, false, true, true]; // Правильная комбинация пазов
-    let currentCombination = [false, false, false, false, false]; // Текущая комбинация
-    let lockpicks = 5; // Количество отмычек
+    // Инициализация переменных
+    let correctCombination = [];
+    let currentCombination = [];
+    let lockpicks = 0; // Начальное количество отмычек
+    let lockpicksInput = 0; // Количество отмычек, введенное пользователем
+    let difficulty = ''; // Переменная для хранения сложности
 
     const lockpick = document.getElementById('lockpick');
-    const pins = document.querySelectorAll('.pin');
+    const pinsContainer = document.getElementById('pins-container');
     const checkButton = document.getElementById('checkButton');
-    const lockStatus = document.getElementById('lock-status');
-    const lockpicksElement = document.getElementById('lockpicks');
     const message = document.getElementById('message');
+    const lockStatus = document.getElementById('lock-status');
+    const lockpicksCount = document.getElementById('lockpicks-count');
+    const difficultySelection = document.getElementById('difficultySelection');
+    const gameContainer = document.getElementById('gameContainer');
+    const lockpicksInputField = document.getElementById('lockpicks-input');
+    const startGameButton = document.getElementById('startGameButton');
+    const easyButton = document.getElementById('easyButton');
+    const mediumButton = document.getElementById('mediumButton');
+    const hardButton = document.getElementById('hardButton');
 
-    // Обновление состояния пинов
-    pins.forEach((pin, index) => {
-      pin.addEventListener('click', () => {
-        currentCombination[index] = !currentCombination[index];
-        updatePinState(pin, currentCombination[index]);
-      });
-    });
+    // Функция для отображения выбранной сложности и активации кнопки "Начать игру"
+    function showGameOptions(level) {
+      const inputLockpicks = lockpicksInputField.value;
 
-    // Обновление класса пина
+      if (inputLockpicks < 1 || isNaN(inputLockpicks)) {
+        alert('Введите корректное количество отмычек.');
+        return;
+      }
+
+      lockpicksInput = parseInt(inputLockpicks);
+      lockpicks = lockpicksInput;  // Обновление количество отмычек(не работает)
+      difficulty = level;
+
+      // Удаление выделения с кнопки
+      easyButton.classList.remove('selected');
+      mediumButton.classList.remove('selected');
+      hardButton.classList.remove('selected');
+
+      if (level === 'easy') {
+        easyButton.classList.add('selected');
+      } else if (level === 'medium') {
+        mediumButton.classList.add('selected');
+      } else if (level === 'hard') {
+        hardButton.classList.add('selected');
+      }
+
+      // Отображение кнопки "Начать" и скрытие выбора сложности
+      startGameButton.disabled = false;
+    }
+
+    // Функция старта игры
+    function startGame() {
+      difficultySelection.style.display = 'none';
+      gameContainer.style.display = 'block';
+
+      lockpicksCount.textContent = lockpicks;
+
+      // Настройка игры в зависимости от выбранной сложности
+      setDifficulty(difficulty);
+    }
+
+    // Функция для обновления пинов в зависимости от сложности
+    function setDifficulty(level) {
+      let numPins;
+      switch(level) {
+        case 'easy': 
+          numPins = 3; 
+          break;
+        case 'medium': 
+          numPins = 4; 
+          break;
+        case 'hard': 
+          numPins = 5; 
+          break;
+        default:
+          numPins = 3;
+      }
+
+      // Очистка текущих пинов
+      pinsContainer.innerHTML = '';
+      currentCombination = [];
+      correctCombination = [];
+
+      // Создание пинов
+      for (let i = 0; i < numPins; i++) {
+        const pin = document.createElement('div');
+        pin.classList.add('pin');
+        pin.setAttribute('data-index', i);
+        pin.addEventListener('click', () => {
+          currentCombination[i] = !currentCombination[i];
+          updatePinState(pin, currentCombination[i]);
+        });
+        pinsContainer.appendChild(pin);
+
+        // Заполнение правильной комбинации
+        correctCombination.push(Math.random() > 0.5); // true или false
+      }
+    }
+
+    // Функция обновления состояния пинов
     function updatePinState(pin, isCorrect) {
       pin.classList.toggle('true', isCorrect);
       pin.classList.toggle('false', !isCorrect);
     }
 
-    // Проверка замка
+    // Функция проверки комбинации
     checkButton.addEventListener('click', () => {
-      if (lockpicks <= 0) {
-        message.textContent = 'Отмычки закончились! Вы проиграли.';
-        message.style.color = 'red';
-        return;
-      }
-
       if (arraysEqual(correctCombination, currentCombination)) {
         lockpick.classList.add('correct');
-        message.textContent = 'Замок успешно вскрыт';
+        message.textContent = 'Замок успешно вскрыт!';
         message.style.color = 'green';
-        checkButton.disabled = true;
-
-        pins.forEach(pin => pin.classList.add('correct'));
       } else {
         // Шанс поломки отмычки
         const pickBreaks = Math.random() < 0.5;
         if (pickBreaks) {
           lockpicks--;
-          lockpicksElement.textContent = lockpicks;
+          lockpicksCount.textContent = lockpicks;
           message.textContent = 'Неправильная комбинация - отмычка сломалась!';
           message.style.color = 'red';
         } else {
@@ -193,16 +331,43 @@
         }
 
         if (lockpicks <= 0) {
-          message.textContent = 'Отмычки закончились!';
+          message.textContent = 'Вы исчерпали все отмычки. Игра окончена.';
           message.style.color = 'red';
           checkButton.disabled = true;
         }
       }
     });
 
-    // Функция проверки массивов
-    function arraysEqual(arr1, arr2) {
-      return JSON.stringify(arr1) === JSON.stringify(arr2);
+    // Функция возвращения на страницу выбора сложности
+    function goBack() {
+      // Скрыть игровой контейнер и показать контейнер выбора сложности
+      difficultySelection.style.display = 'block';
+      gameContainer.style.display = 'none';
+
+      // Удалить выделение с кнопок сложности
+      easyButton.classList.remove('selected');
+      mediumButton.classList.remove('selected');
+      hardButton.classList.remove('selected');
+
+      // Сбросить состояние отмычки и сообщения
+      lockpick.classList.remove('correct');
+      message.textContent = '';
+      lockpicksCount.textContent = '';
+      checkButton.disabled = false;
+
+      // Сбросить количество отмычек
+      lockpicks = 0;
+      lockpicksInputField.value = ''; // Очистить поле ввода
+      startGameButton.disabled = true; // Отключить кнопку "Начать игру"
+    }
+
+    // Функция сравнения массивов
+    function arraysEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
     }
   </script>
 </body>
